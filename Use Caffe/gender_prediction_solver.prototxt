@@ -1,0 +1,11 @@
+net: "Caffe_models/gender_prediction_simple.prototxt"
+test_iter: 100
+test_interval: 500
+base_lr: 0.01
+lr_policy: "step"
+stepsize: 30000
+display: 500
+max_iter: 30000
+momentum: 0.9
+weight_decay: 0.0005
+solver_mode: GPU

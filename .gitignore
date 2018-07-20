@@ -1,0 +1,11 @@
+# Files
+*.log
+*.txt
+*.png
+*.jpg
+*.csv
+*.caffemodel
+
+#Folders
+*/.idea
+data/*
