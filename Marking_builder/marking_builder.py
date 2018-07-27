@@ -1,6 +1,8 @@
 import os
 from argparse import ArgumentParser
 
+# TODO: script can be modernized for making age marking
+
 def init_argparse():
     """
     Initialize argparse

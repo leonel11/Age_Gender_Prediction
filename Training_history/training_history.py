@@ -4,7 +4,7 @@ import os.path as pth
 import sys
 
 # Pull data from log file
-def GetData(solver_file, log_file):
+def get_data(solver_file, log_file):
     if not pth.exists(solver_file): # checking of the existence of log file
         print('Cannot read solver file!')
         return []
@@ -15,9 +15,10 @@ def GetData(solver_file, log_file):
         solver_data = f.read()
     with open(log_file) as f: # reading of data from log file
         log_data = f.read()
+    # extract and strings from solver and log files
     return solver_data.splitlines(), log_data.splitlines()
 
-def GetIters(data):
+def get_iters(data):
     test_iter, max_iter = 0, 0
     pattern_test = 'test_interval: '
     pattern_max = 'max_iter: '
@@ -29,7 +30,7 @@ def GetIters(data):
     return test_iter, max_iter
 
 # Get values of losses and accuracies during the training process
-def GetFeatures(data, test_iter, max_iter):
+def get_features(data, test_iter, max_iter):
     Xacc = list(np.arange(0, max_iter, test_iter))
     Xacc.append(max_iter)
     # Y values for dependency of iterations and losses
@@ -42,13 +43,15 @@ def GetFeatures(data, test_iter, max_iter):
     return Xacc, Yacc, loss
 
 # Build the dependency of iterations and accuracies
-def BuildAccuracyHistoryImage(Xacc, Yacc, loss):
+def build_training_history_image(Xacc, Yacc, loss):
+    # build image with history of accuracy
     plt.plot(Xacc, Yacc)
     plt.xlabel('Number of iteration')
     plt.ylabel('Accuracy')
     plt.grid()
     plt.savefig('accuracy.png')
     plt.clf()
+    # build image with history of loss
     plt.plot(loss)
     plt.ylabel('Loss')
     # hide X tricks
@@ -63,12 +66,13 @@ def BuildAccuracyHistoryImage(Xacc, Yacc, loss):
 
 if (len(sys.argv) != 3): # checking of right call
     print('The call of this script looks like this:\n' +
-          '     python trainhistory.py log_file')
+          '     python trainhistory.py solver_prototxt log_file')
 else:
+    # reading params of script
     solver_file = sys.argv[1]
     log_file = sys.argv[2]
-    solver_data, log_data = GetData(solver_file, log_file)
+    solver_data, log_data = get_data(solver_file, log_file)
     if solver_data and log_data: # main part of script
-        test_iter, max_iter = GetIters(solver_data)
-        Xacc, Yacc, loss = GetFeatures(log_data, test_iter, max_iter)
-        BuildAccuracyHistoryImage(Xacc, Yacc, loss)
+        test_iter, max_iter = get_iters(solver_data)
+        Xacc, Yacc, loss = get_features(log_data, test_iter, max_iter)
+        build_training_history_image(Xacc, Yacc, loss)

@@ -8,4 +8,5 @@
 
 #Folders
 */.idea
+*/.ipynb_checkpoints
 data/*
