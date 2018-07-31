@@ -18,7 +18,7 @@ layer {
     mirror: true
  }
  data_param {
-    source: "UAD/train/train_color_lmdb"
+    source: "UAD_Cleaned/train/train_color_lmdb"
     batch_size: 64
     backend: LMDB
   }
@@ -39,7 +39,7 @@ layer {
     mean_value: 123
  }
  data_param {
-    source: "UAD/test/test_color_lmdb"
+    source: "UAD_Cleaned/test/test_color_lmdb"
     batch_size: 32
     backend: LMDB
   }

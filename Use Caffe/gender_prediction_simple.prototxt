@@ -12,10 +12,9 @@ layer {
   }
  transform_param {
     crop_size: 60
-    mean_value: 127
-    mean_value: 127
-    mean_value: 127
-    scale: 0.00390625
+    mean_value: 104
+    mean_value: 117
+    mean_value: 123
     mirror: true
  }
  data_param {
@@ -35,10 +34,9 @@ layer {
   }
  transform_param {
     crop_size: 60
-    mean_value: 127
-    mean_value: 127
-    mean_value: 127
-    scale: 0.00390625
+    mean_value: 104
+    mean_value: 117
+    mean_value: 123
  }
  data_param {
     source: "UAD/test/test_color_lmdb"

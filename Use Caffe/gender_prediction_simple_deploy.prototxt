@@ -11,7 +11,7 @@ layer {
   input_param { 
     shape: { 
       dim: 1 
-      dim: 1 
+      dim: 3 
       dim: 60
       dim: 60 
     } 
@@ -181,7 +181,7 @@ layer {
 layer {
   name: "fc"
   type: "InnerProduct"
-  bottom: "norm3"
+  bottom: "pool3"
   top: "fc"
   param {
     lr_mult: 1

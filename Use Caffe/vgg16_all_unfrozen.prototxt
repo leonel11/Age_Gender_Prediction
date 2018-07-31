@@ -15,7 +15,7 @@ layer {
  }
  data_param {
     source: "UAD_256/train/train_color_lmdb"
-    batch_size: 40
+    batch_size: 24
     backend: LMDB
   }
   top: "data"
