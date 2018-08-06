@@ -10,3 +10,4 @@
 */.idea
 */.ipynb_checkpoints
 data/*
+Training_history/*.prototxt
