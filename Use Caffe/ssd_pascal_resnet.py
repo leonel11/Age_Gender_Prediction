@@ -11,56 +11,35 @@ import subprocess
 import sys
 
 # Add extra layers on top of a "base" network
-def AddExtraLayers(net, use_batchnorm=True, lr_mult=1):
+def AddExtraLayers(net, use_batchnorm=True):
     use_relu = True
 
     # Add additional convolutional layers.
     # 19 x 19
-    from_layer = net.keys()[-1]
+    last_layer = net.keys()[-1]
 
-    # TODO(weiliu89): Construct the name using the last layer to avoid duplication.
     # 10 x 10
-    out_layer = "conv6_1"
-    ConvBNLayer(net, from_layer, out_layer, use_batchnorm, use_relu, 256, 1, 0, 1,
-        lr_mult=lr_mult)
-
+    from_layer = last_layer
+    out_layer = "{}/conv1_1".format(last_layer)
+    ConvBNLayer(net, from_layer, out_layer, use_batchnorm, use_relu, 256, 1, 0, 1)
     from_layer = out_layer
-    out_layer = "conv6_2"
-    ConvBNLayer(net, from_layer, out_layer, use_batchnorm, use_relu, 512, 3, 1, 2,
-        lr_mult=lr_mult)
 
-    # 5 x 5
+    out_layer = "{}/conv1_2".format(last_layer)
+    ConvBNLayer(net, from_layer, out_layer, use_batchnorm, use_relu, 512, 3, 1, 2)
     from_layer = out_layer
-    out_layer = "conv7_1"
-    ConvBNLayer(net, from_layer, out_layer, use_batchnorm, use_relu, 128, 1, 0, 1,
-      lr_mult=lr_mult)
 
-    from_layer = out_layer
-    out_layer = "conv7_2"
-    ConvBNLayer(net, from_layer, out_layer, use_batchnorm, use_relu, 256, 3, 1, 2,
-      lr_mult=lr_mult)
+    for i in xrange(2, 4):
+      out_layer = "{}/conv{}_1".format(last_layer, i)
+      ConvBNLayer(net, from_layer, out_layer, use_batchnorm, use_relu, 256, 1, 0, 1)
+      from_layer = out_layer
 
-    # 3 x 3
-    from_layer = out_layer
-    out_layer = "conv8_1"
-    ConvBNLayer(net, from_layer, out_layer, use_batchnorm, use_relu, 128, 1, 0, 1,
-      lr_mult=lr_mult)
+      out_layer = "{}/conv{}_2".format(last_layer, i)
+      ConvBNLayer(net, from_layer, out_layer, use_batchnorm, use_relu, 512, 3, 1, 2)
+      from_layer = out_layer
 
-    from_layer = out_layer
-    out_layer = "conv8_2"
-    ConvBNLayer(net, from_layer, out_layer, use_batchnorm, use_relu, 256, 3, 0, 1,
-      lr_mult=lr_mult)
-
-    # 1 x 1
-    from_layer = out_layer
-    out_layer = "conv9_1"
-    ConvBNLayer(net, from_layer, out_layer, use_batchnorm, use_relu, 128, 1, 0, 1,
-      lr_mult=lr_mult)
-
-    from_layer = out_layer
-    out_layer = "conv9_2"
-    ConvBNLayer(net, from_layer, out_layer, use_batchnorm, use_relu, 256, 3, 0, 1,
-      lr_mult=lr_mult)
+    # Add global pooling layer.
+    name = net.keys()[-1]
+    net.pool6 = L.Pooling(net[name], pool=P.Pooling.AVE, global_pooling=True)
 
     return net
 
@@ -71,7 +50,7 @@ def AddExtraLayers(net, use_batchnorm=True, lr_mult=1):
 caffe_root = os.getcwd()
 
 # Set true if you want to start training right after generating all files.
-run_soon = False
+run_soon = True
 # Set true if you want to load from most recently saved snapshot.
 # Otherwise, we will load from the pretrain_model defined below.
 resume_training = False
@@ -188,23 +167,6 @@ train_transform_param = {
                         P.Resize.LANCZOS4,
                         ],
                 },
-        'distort_param': {
-                'brightness_prob': 0.5,
-                'brightness_delta': 32,
-                'contrast_prob': 0.5,
-                'contrast_lower': 0.5,
-                'contrast_upper': 1.5,
-                'hue_prob': 0.5,
-                'hue_delta': 18,
-                'saturation_prob': 0.5,
-                'saturation_lower': 0.5,
-                'saturation_upper': 1.5,
-                'random_order_prob': 0.0,
-                },
-        'expand_param': {
-                'prob': 0.5,
-                'max_expand_ratio': 4.0,
-                },
         'emit_constraint': {
             'emit_type': caffe_pb2.EmitConstraint.CENTER,
             }
@@ -220,29 +182,20 @@ test_transform_param = {
                 },
         }
 
-# If true, use batch norm for all newly added layers.
-# Currently only the non batch norm version has been tested.
-use_batchnorm = False
-#lr_mult = 1
-lr_mult = 0.01
-# Use different initial learning rate.
-if use_batchnorm:
-    base_lr = 0.0004
-else:
-    # A learning rate for batch_size = 1, num_gpus = 1.
-    base_lr = 0.00004
+# A learning rate for batch_size = 1, num_gpus = 1.
+base_lr = 0.0004
 
 # Modify the job name if you want.
 job_name = "SSD_{}".format(resize)
 # The name of the model. Modify it if you want.
-model_name = "MobileNet_gender_{}".format(job_name)
+model_name = "ResNet101_gender_{}".format(job_name)
 
 # Directory which stores the model .prototxt file.
 save_dir = "/workspace/models/{}".format(job_name)
 # Directory which stores the snapshot of models.
 snapshot_dir = "/workspace/snapshots/{}".format(job_name)
 # Directory which stores the job script and log file.
-job_dir = "/workspace/jobs/MobileNet/{}".format(job_name)
+job_dir = "/workspace/jobs/ResNet101/{}".format(job_name)
 # Directory which stores the detection results.
 output_result_dir = "/workspace/results/{}".format(job_name)
 
@@ -258,9 +211,8 @@ job_file = "{}/{}.sh".format(job_dir, model_name)
 
 # Stores the test image names and sizes. Created by data/VOC0712/create_list.sh
 name_size_file = "/workspace/ssd_data/test_name_size.txt"
-# The pretrained model. We use the Fully convolutional reduced (atrous) VGGNet, MobileNet.
-#pretrain_model = "models/VGG_ILSVRC_16_layers_fc_reduced.caffemodel"
-pretrain_model = "models/mobilenet.caffemodel"
+# The pretrained ResNet101 model from https://github.com/KaimingHe/deep-residual-networks.
+pretrain_model = "models/resnet101.caffemodel"
 # Stores LabelMapItem.
 label_map_file = "/workspace/labelmap_gender.prototxt"
 
@@ -271,7 +223,6 @@ background_label_id=0
 train_on_diff_gt = True
 normalization_mode = P.Loss.VALID
 code_type = P.PriorBox.CENTER_SIZE
-ignore_cross_boundary_bbox = False
 mining_type = P.MultiBoxLoss.MAX_NEGATIVE
 neg_pos_ratio = 3.
 loc_weight = (neg_pos_ratio + 1.) / 4.
@@ -290,7 +241,6 @@ multibox_loss_param = {
     'neg_pos_ratio': neg_pos_ratio,
     'neg_overlap': 0.5,
     'code_type': code_type,
-    'ignore_cross_boundary_bbox': ignore_cross_boundary_bbox,
     }
 loss_param = {
     'normalization': normalization_mode,
@@ -299,16 +249,16 @@ loss_param = {
 # parameters for generating priors.
 # minimum dimension of input image
 min_dim = 300
-# conv4_3 ==> 38 x 38
-# fc7 ==> 19 x 19
-# conv6_2 ==> 10 x 10
-# conv7_2 ==> 5 x 5
-# conv8_2 ==> 3 x 3
-# conv9_2 ==> 1 x 1
-mbox_source_layers = ['conv4_3', 'fc7', 'conv6_2', 'conv7_2', 'conv8_2', 'conv9_2']
+# res3b3_relu ==> 38 x 38
+# res5c_relu ==> 19 x 19
+# res5c_relu/conv1_2 ==> 10 x 10
+# res5c_relu/conv2_2 ==> 5 x 5
+# res5c_relu/conv3_2 ==> 3 x 3
+# pool6 ==> 1 x 1
+mbox_source_layers = ['res3b3_relu', 'res5c_relu', 'res5c_relu/conv1_2', 'res5c_relu/conv2_2', 'res5c_relu/conv3_2', 'pool6']
 # in percent %
 min_ratio = 20
-max_ratio = 90
+max_ratio = 95
 step = int(math.floor((max_ratio - min_ratio) / (len(mbox_source_layers) - 2)))
 min_sizes = []
 max_sizes = []
@@ -316,11 +266,8 @@ for ratio in xrange(min_ratio, max_ratio + 1, step):
   min_sizes.append(min_dim * ratio / 100.)
   max_sizes.append(min_dim * (ratio + step) / 100.)
 min_sizes = [min_dim * 10 / 100.] + min_sizes
-max_sizes = [min_dim * 20 / 100.] + max_sizes
-steps = [8, 16, 32, 64, 100, 300]
-aspect_ratios = [[2], [2, 3], [2, 3], [2, 3], [2], [2]]
-# L2 normalize conv4_3.
-normalizations = [20, -1, -1, -1, -1, -1]
+max_sizes = [[]] + max_sizes
+aspect_ratios = [[2], [2, 3], [2, 3], [2, 3], [2, 3], [2, 3]]
 # variance used to encode/decode prior bboxes.
 if code_type == P.PriorBox.CENTER_SIZE:
   prior_variance = [0.1, 0.1, 0.2, 0.2]
@@ -360,20 +307,18 @@ elif normalization_mode == P.Loss.FULL:
 # Evaluate on whole test set.
 num_test_image = 3165
 test_batch_size = 15
-# Ideally test_batch_size should be divisible by num_test_image,
-# otherwise mAP will be slightly off the true value.
 test_iter = int(math.ceil(float(num_test_image) / test_batch_size))
 
 solver_param = {
     # Train parameters
     'base_lr': base_lr,
     'weight_decay': 0.0005,
-    'lr_policy': "multistep",
-    'stepvalue': [80000, 100000, 120000],
+    'lr_policy': "step",
+    'stepsize': 40000,
     'gamma': 0.1,
     'momentum': 0.9,
     'iter_size': iter_size,
-    'max_iter': 120000,
+    'max_iter': 60000,
     'snapshot': 10000,
     'display': 100,
     'average_loss': 10,
@@ -434,16 +379,16 @@ net.data, net.label = CreateAnnotatedDataLayer(train_data, batch_size=batch_size
         train=True, output_label=True, label_map_file=label_map_file,
         transform_param=train_transform_param, batch_sampler=batch_sampler)
 
-VGGNetBody(net, from_layer='data', fully_conv=True, reduced=True, dilated=True,
-    dropout=False)
+ResNet101Body(net, from_layer='data', use_pool5=False, use_dilation_conv5=True)
 
-AddExtraLayers(net, use_batchnorm, lr_mult=lr_mult)
+# Use batch norm for the newly added layers.
+AddExtraLayers(net, use_batchnorm=True)
 
+# Don't use batch norm for location/confidence prediction layers.
 mbox_layers = CreateMultiBoxHead(net, data_layer='data', from_layers=mbox_source_layers,
-        use_batchnorm=use_batchnorm, min_sizes=min_sizes, max_sizes=max_sizes,
-        aspect_ratios=aspect_ratios, steps=steps, normalizations=normalizations,
-        num_classes=num_classes, share_location=share_location, flip=flip, clip=clip,
-        prior_variance=prior_variance, kernel_size=3, pad=1, lr_mult=lr_mult)
+        use_batchnorm=False, min_sizes=min_sizes, max_sizes=max_sizes,
+        aspect_ratios=aspect_ratios, num_classes=num_classes, share_location=share_location,
+        flip=flip, clip=clip, prior_variance=prior_variance, kernel_size=3, pad=1)
 
 # Create the MultiBoxLossLayer.
 name = "mbox_loss"
@@ -463,16 +408,16 @@ net.data, net.label = CreateAnnotatedDataLayer(test_data, batch_size=test_batch_
         train=False, output_label=True, label_map_file=label_map_file,
         transform_param=test_transform_param)
 
-VGGNetBody(net, from_layer='data', fully_conv=True, reduced=True, dilated=True,
-    dropout=False)
+ResNet101Body(net, from_layer='data', use_pool5=False, use_dilation_conv5=True)
 
-AddExtraLayers(net, use_batchnorm, lr_mult=lr_mult)
+# Use batch norm for the newly added layers.
+AddExtraLayers(net, use_batchnorm=True)
 
+# Don't use batch norm for location/confidence prediction layers.
 mbox_layers = CreateMultiBoxHead(net, data_layer='data', from_layers=mbox_source_layers,
-        use_batchnorm=use_batchnorm, min_sizes=min_sizes, max_sizes=max_sizes,
-        aspect_ratios=aspect_ratios, steps=steps, normalizations=normalizations,
-        num_classes=num_classes, share_location=share_location, flip=flip, clip=clip,
-        prior_variance=prior_variance, kernel_size=3, pad=1, lr_mult=lr_mult)
+        use_batchnorm=False, min_sizes=min_sizes, max_sizes=max_sizes,
+        aspect_ratios=aspect_ratios, num_classes=num_classes, share_location=share_location,
+        flip=flip, clip=clip, prior_variance=prior_variance, kernel_size=3, pad=1)
 
 conf_name = "mbox_conf"
 if multibox_loss_param["conf_loss_type"] == P.MultiBoxLoss.SOFTMAX:
