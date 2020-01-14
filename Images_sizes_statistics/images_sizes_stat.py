@@ -2,6 +2,7 @@ from glob import glob
 from argparse import ArgumentParser
 from PIL import Image
 
+
 def init_argparse():
     """
     Initialize argparse
@@ -16,6 +17,7 @@ def init_argparse():
         help='path to test images',
         type=str)
     return parser
+
 
 def build_sizes_stat(test_dir):
     """
@@ -33,6 +35,7 @@ def build_sizes_stat(test_dir):
         stat_sizes[img_name] = [width, height]
     return stat_sizes
 
+
 def output_sizes_stat(sizes_dict):
     """
     Output dictionary to file 'test_name_size.txt' for testing SSD
@@ -43,11 +46,13 @@ def output_sizes_stat(sizes_dict):
         for key in sizes_dict:
             f.write('{} {} {}\n'.format(key, sizes_dict[key][0], sizes_dict[key][1]))
 
+
 def main():
     args = init_argparse().parse_args()
     test_dir = args.test_directory
     stat_sizes = build_sizes_stat(test_dir)
     output_sizes_stat(stat_sizes)
+
 
 if __name__ == '__main__':
     main()

@@ -1,3 +1,3 @@
 # Class_predictor
 
-Script for prediction
+Script for prediction (classification) of age or gender

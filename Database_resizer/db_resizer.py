@@ -4,11 +4,11 @@ from argparse import ArgumentParser
 
 
 def init_argparse():
-    """
+    '''
     Initialize argparse
 
     @return: parsed data in dictionary
-    """
+    '''
     parser = ArgumentParser(description='Database resizer')
     parser.add_argument(
         '-db',
@@ -18,12 +18,13 @@ def init_argparse():
         type=str)
     return parser
 
+
 def resize_database(database_path):
-    """
+    '''
     Resize each image of database
 
     @param database_path: path to database, which content will be changed
-    """
+    '''
     for root, _, files in os.walk(database_path):
         for file in files:
             if file.endswith('.png'):
@@ -38,6 +39,7 @@ def resize_database(database_path):
                    new_width, new_height = int(256*coef), 256
                 img = img.resize((new_width, new_height), Image.ANTIALIAS)
                 img.save(os.path.join(root, file)) # save resized image
+
 
 def main():
     args = init_argparse().parse_args()

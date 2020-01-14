@@ -1,7 +1,9 @@
 import os
 from argparse import ArgumentParser
 
+
 # TODO: script can be modernized for making age marking
+
 
 def init_argparse():
     """
@@ -18,6 +20,7 @@ def init_argparse():
         type=str)
     return parser
 
+
 def get_images(database_path):
     """
     Get all images of selection
@@ -31,6 +34,7 @@ def get_images(database_path):
             if file.endswith('.png'):
                 images.append(os.path.join(root, file))
     return images
+
 
 def get_labels(images):
     """
@@ -49,6 +53,7 @@ def get_labels(images):
             labels.append(1) # male
     return labels
 
+
 def build_marking(database_path):
     """
     Build marked file
@@ -62,10 +67,12 @@ def build_marking(database_path):
         for i in range(len(images)):
             f.write(images[i] + ' ' + str(labels[i]) + '\n')
 
+
 def main():
     args = init_argparse().parse_args()
     selection = args.selection
     build_marking(selection)
+
 
 if __name__ == '__main__':
     main()
