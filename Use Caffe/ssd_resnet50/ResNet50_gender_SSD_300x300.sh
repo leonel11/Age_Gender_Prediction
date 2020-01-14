@@ -1,0 +1,1 @@
+$CAFFE_ROOT/build/tools/caffe train --solver="/workspace/ssd_resnet50/solver.prototxt" --weights="models/resnet50.caffemodel" --gpu 0,1,2,3 2>&1 | tee /workspace/jobs/ResNet50/SSD_300x300/ResNet50_gender_SSD_300x300.log
